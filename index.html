@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     
-    <!-- ===== SEO META TAGS - FOR BETTER SEARCH RANKING ===== -->
+    <!-- ===== SEO META TAGS ===== -->
     <title>Premier Gully · Cricket Scorekeeper | Ultimate Gully Cricket Counter</title>
     <meta name="description" content="Premier Gully - The most advanced gully cricket run counter with undo, edit, multiple innings, and real-time statistics. Perfect for street cricket enthusiasts.">
     <meta name="keywords" content="gully cricket, cricket score counter, run counter, cricket app, street cricket, scorekeeper, cricket scoring, premier gully, cricket tracker">
@@ -99,7 +99,7 @@
             text-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
         }
 
-        /* ===== VISITOR COUNTER - ELEGANT DESIGN ===== */
+        /* ===== VISITOR COUNTER ===== */
         .visitor-counter {
             background: rgba(0, 20, 40, 0.6);
             border: 1.5px solid rgba(0, 255, 255, 0.4);
@@ -173,7 +173,6 @@
                         0 0 25px rgba(0, 255, 255, 0.4);
         }
 
-        /* rest of your existing CSS remains exactly the same */
         /* ===== MAIN SCORE PANEL ===== */
         .runs-panel {
             background: #0f1a21d9;
@@ -285,6 +284,7 @@
             color: #ffe7b0;
         }
 
+        /* ===== CURRENT OVER STRIP ===== */
         .over-history {
             background: #0d1a24d0;
             border-radius: 36px;
@@ -328,6 +328,7 @@
         .ball-chip.wicket { border-color: #d67a7a; color: #ffd9d9; }
         .ball-chip.dot { border-color: #6c8faa; color: #c1d9ec; }
 
+        /* ===== REFINED ANIMATION ===== */
         .animation-overlay {
             position: fixed;
             inset: 0;
@@ -362,6 +363,7 @@
             100% { opacity: 0; transform: scale(1.4); }
         }
 
+        /* ===== MODAL & POPUP — PERFECTLY CENTERED ===== */
         .modal, .popup-modal {
             display: none;
             position: fixed;
@@ -454,6 +456,7 @@
             margin-top: 0.5rem;
         }
 
+        /* ===== INNINGS DISPLAY — WITH OVER RUNS ===== */
         .innings-card {
             background: #1b3140;
             border-radius: 36px;
@@ -556,6 +559,7 @@
             filter: drop-shadow(0 0 8px cyan);
         }
 
+        /* ===== ULTRA RESPONSIVE TWEAKS ===== */
         @media (max-width: 550px) {
             .button-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -598,6 +602,41 @@
                 min-width: 60px;
             }
         }
+        .score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    flex-wrap: wrap;
+}
+
+.runs-value {
+    font-size: clamp(3.5rem, 14vw, 6.2rem);
+    font-weight: 600;
+    background: linear-gradient(145deg, #ffffff, #b0e0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.4));
+}
+
+.slash {
+    font-size: clamp(3rem, 12vw, 5rem);
+    font-weight: 600;
+    color: #93bcd5;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+}
+
+.wickets-value {
+    font-size: clamp(3.5rem, 14vw, 6.2rem);
+    font-weight: 600;
+    background: linear-gradient(145deg, #ffb0b0, #ff4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    filter: drop-shadow(0 0 20px rgba(255, 68, 68, 0.5));
+}
     </style>
 </head>
 <body>
@@ -627,8 +666,12 @@
         <div class="runs-panel">
             <div class="total-row">
                 <div class="score-block">
-                    <span class="score-label">TOTAL</span>
-                    <span class="score-value" id="totalRunsDisplay">0</span>
+                    <span class="score-label">SCORE</span>
+                    <div class="score-display">
+    <span class="runs-value" id="runsDisplay">0</span>
+    <span class="slash">/</span>
+    <span class="wickets-value" id="wicketsDisplay">0</span>
+</div>
                 </div>
                 <div class="score-block">
                     <span class="score-label">OVERS</span>
@@ -680,54 +723,51 @@
 
     <script>
         (function() {
-            // ===== VISITOR COUNTER - SIMULATED COUNT =====
-            // In a real implementation, you would use a backend API
-            // This is a client-side simulation that increments and stores in localStorage
-            
+            // ===== VISITOR COUNTER =====
             function initializeVisitorCounter() {
                 const counterElement = document.getElementById('visitorCount');
-                
-                // Try to get from localStorage
                 let visitorCount = localStorage.getItem('premierGullyVisitors');
-                
                 if (!visitorCount) {
-                    // First time visitor - start with a base number
-                    visitorCount = 12345; // Starting number
+                    visitorCount = 12345;
                 } else {
                     visitorCount = parseInt(visitorCount);
-                    
-                    // For demo purposes, increment slightly to show it's active
-                    // In production, this would be handled by server
-                    if (Math.random() > 0.5) { // 50% chance to increment
+                    if (Math.random() > 0.5) {
                         visitorCount += Math.floor(Math.random() * 3) + 1;
                     }
                 }
-                
-                // Format with commas
                 counterElement.innerText = visitorCount.toLocaleString();
-                
-                // Save back to localStorage
                 localStorage.setItem('premierGullyVisitors', visitorCount);
             }
-            
-            // Call the counter initializer
             initializeVisitorCounter();
 
-            // ---------- STATE WITH UNDO ----------
-            let inningsList = [];               // { totalRuns, oversData: [[ball1, ball2...]] }
+            // ---------- STATE ----------
+            let inningsList = [];
             let currentInningsIndex = -1;
             let currentOverBalls = [];
             let currentBallCount = 0;
             let totalRuns = 0;
 
-            // undo stack: stores { totalRuns, currentOverBalls, currentBallCount, oversDataCopy, inningsIndex }
             let undoStack = [];
 
-            // helpers
             function getOversString() {
                 if (currentInningsIndex === -1) return '0.0';
                 let completed = inningsList[currentInningsIndex]?.oversData?.length || 0;
                 return `${completed}.${currentBallCount}`;
+            }
+
+            function getCurrentWickets() {
+                if (currentInningsIndex === -1) return 0;
+                let inns = inningsList[currentInningsIndex];
+                let wicketCount = 0;
+                inns.oversData.forEach(over => {
+                    over.forEach(ball => {
+                        if (ball.includes('wicket')) wicketCount++;
+                    });
+                });
+                currentOverBalls.forEach(ball => {
+                    if (ball.includes('wicket')) wicketCount++;
+                });
+                return wicketCount;
             }
 
             function saveCurrent() {
@@ -735,10 +775,8 @@
                 inningsList[currentInningsIndex].totalRuns = totalRuns;
             }
 
-            // push state for undo
             function pushUndo() {
                 if (currentInningsIndex === -1) return;
-                // deep copy overs data
                 let oversCopy = inningsList[currentInningsIndex].oversData.map(over => [...over]);
                 undoStack.push({
                     totalRuns,
@@ -747,7 +785,6 @@
                     oversData: oversCopy,
                     inningsIndex: currentInningsIndex
                 });
-                // keep stack reasonable
                 if (undoStack.length > 20) undoStack.shift();
             }
 
@@ -757,10 +794,7 @@
                     return;
                 }
                 let prev = undoStack.pop();
-                if (currentInningsIndex !== prev.inningsIndex) {
-                    // if innings changed, ignore (should not happen)
-                    return;
-                }
+                if (currentInningsIndex !== prev.inningsIndex) return;
                 totalRuns = prev.totalRuns;
                 currentOverBalls = prev.currentOverBalls;
                 currentBallCount = prev.currentBallCount;
@@ -771,7 +805,10 @@
             }
 
             function refreshDisplay() {
-                document.getElementById('totalRunsDisplay').innerText = totalRuns;
+                // Update score display: runs/wickets
+                const wickets = getCurrentWickets();
+                document.getElementById('runsDisplay').innerText = totalRuns;
+document.getElementById('wicketsDisplay').innerText = wickets;
                 document.getElementById('oversDisplay').innerText = getOversString();
                 let ballText = currentBallCount + (currentBallCount === 1 ? ' ball' : ' balls');
                 document.getElementById('ballInOverDisplay').innerText = ballText;
@@ -816,7 +853,7 @@
                 totalRuns = 0;
                 currentOverBalls = [];
                 currentBallCount = 0;
-                undoStack = []; // clear undo on new innings
+                undoStack = [];
                 refreshDisplay();
                 animate('NEW');
             }
@@ -825,10 +862,9 @@
                 if (currentInningsIndex === -1) startNewInnings();
             }
 
-            // core ball handler with undo push
             function handleBall(ballSymbol, runsAdded = 0, isDot = false, noIncrement = false) {
                 checkActive();
-                pushUndo();  // save state before change
+                pushUndo();
 
                 if (currentBallCount === 6) {
                     if (currentOverBalls.length) inningsList[currentInningsIndex].oversData.push([...currentOverBalls]);
@@ -850,7 +886,6 @@
                 refreshDisplay();
             }
 
-            // popup with dynamic options - PERFECT LAYOUT
             function showPopup(type, callback, customOptions = null) {
                 const popup = document.getElementById('runPopup');
                 const titleMap = {
@@ -886,7 +921,6 @@
                 popup.style.display = 'flex';
             }
 
-            // action handlers
             function handleRun(v) { handleBall(v.toString(), v, false, false); animate(v.toString()); }
             function handleDot() { handleBall('dot', 0, true, false); animate('⬤'); }
 
@@ -937,7 +971,6 @@
                 });
             }
 
-            // calculate runs in an over
             function calculateOverRuns(over) {
                 return over.reduce((sum, ball) => {
                     if (ball === 'dot') return sum;
@@ -954,10 +987,8 @@
                 }, 0);
             }
 
-            // ---------- EDIT BALL FUNCTIONALITY ----------
             function editBall(inningsIdx, overIdx, ballIdx, oldValue) {
                 let options = [];
-
                 if (oldValue.includes('wicket')) {
                     options = ['wicket', 'wicket+1', 'wicket+2'];
                 } else if (oldValue.includes('WD')) {
@@ -977,7 +1008,6 @@
                     if (inns && inns.oversData[overIdx] && inns.oversData[overIdx][ballIdx] !== undefined) {
                         inns.oversData[overIdx][ballIdx] = newVal;
 
-                        // recalc total runs for the innings
                         let newTotal = 0;
                         inns.oversData.forEach(over => {
                             over.forEach(ball => {
@@ -1001,13 +1031,12 @@
                         }
                         saveCurrent();
                         refreshDisplay();
-                        openScorecard(); // refresh modal
+                        openScorecard();
                         animate('✎');
                     }
                 }, options);
             }
 
-            // scorecard with clickable balls and over runs
             function openScorecard() {
                 const modal = document.getElementById('scoreModal');
                 const listDiv = document.getElementById('inningsList');
@@ -1077,14 +1106,13 @@
                             }
                             undoStack = [];
                             refreshDisplay();
-                            openScorecard(); // refresh modal
+                            openScorecard();
                         });
                     });
                 }
                 modal.style.display = 'flex';
             }
 
-            // listeners
             document.querySelectorAll('.action-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const a = btn.dataset.action;
@@ -1109,7 +1137,6 @@
                 if (e.target === document.getElementById('runPopup')) document.getElementById('runPopup').style.display='none';
             });
 
-            // initialise
             startNewInnings();
         })();
     </script>
