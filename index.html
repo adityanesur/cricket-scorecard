@@ -209,7 +209,7 @@
             text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
         }
 
-        .overs-value {
+        .overs-value, .rate-value {
             font-size: clamp(2.2rem, 7vw, 3.2rem);
             font-weight: 450;
             color: #ddeeff;
@@ -669,6 +669,10 @@
                     <span class="overs-value" id="oversDisplay">0.0</span>
                     <span class="ball-count" id="ballInOverDisplay">0 balls</span>
                 </div>
+                <div class="score-block">
+                    <span class="score-label">RUN RATE</span>
+                    <span class="rate-value" id="runRateDisplay">0.0</span>
+                </div>
             </div>
         </div>
 
@@ -740,6 +744,15 @@
 
             let undoStack = [];
 
+            // ===== RUN RATE HELPER =====
+            function getCurrentRunRate() {
+                if (currentInningsIndex === -1) return 0;
+                let completedOvers = inningsList[currentInningsIndex]?.oversData?.length || 0;
+                let oversBowled = completedOvers + (currentBallCount / 6);
+                if (oversBowled === 0) return 0;
+                return (totalRuns / oversBowled).toFixed(1);
+            }
+
             function getOversString() {
                 if (currentInningsIndex === -1) return '0.0';
                 let completed = inningsList[currentInningsIndex]?.oversData?.length || 0;
@@ -802,6 +815,10 @@
                 document.getElementById('oversDisplay').innerText = getOversString();
                 let ballText = currentBallCount + (currentBallCount === 1 ? ' ball' : ' balls');
                 document.getElementById('ballInOverDisplay').innerText = ballText;
+                
+                // Update run rate
+                const runRate = getCurrentRunRate();
+                document.getElementById('runRateDisplay').innerText = runRate;
 
                 const container = document.getElementById('currentOverBalls');
                 container.innerHTML = '';
